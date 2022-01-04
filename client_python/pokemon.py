@@ -9,7 +9,6 @@ class Pokemon:
 
 
 class agent:
-
     def __init__(self, _id: int, value: float, src: int, dest: int, speed: float, pos: tuple = None):
         self.id = _id
         self.value = value
