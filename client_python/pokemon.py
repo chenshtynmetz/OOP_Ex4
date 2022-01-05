@@ -4,7 +4,7 @@ class Pokemon:
         self.value = value
         self.type = type
         self.pos = pos
-        self.edge = pos  # cheak from pos the right edge
+        self.edge = None  # cheak from pos the right edge
         self.assign = False  # if we draw the pokimon on the graph
 
 
