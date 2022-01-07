@@ -8,7 +8,7 @@ class Pokemon:
         self.assign = False  # if we draw the pokimon on the graph
 
 
-class agent:
+class Agent:
     def __init__(self, _id: int, value: float, src: int, dest: int, speed: float, pos: tuple = None):
         self.id = _id
         self.value = value

@@ -9,7 +9,7 @@ import pygame
 from client_python.Button import Button
 from client_python.GraphAlgo import GraphAlgo
 from client_python.client import Client
-from client_python.pokemon import Pokemon
+from client_python.pokemon import Pokemon, Agent
 
 WIDTH, HEIGHT = 1080, 720
 PORT = 6666
@@ -31,7 +31,7 @@ min_y = float(min(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
 max_x = float(max(list(graph.nodes.values()), key=lambda n: n.pos[0]).pos[0])
 max_y = float(max(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
 radius = 15
-
+dic_agents = {}
 
 def scale(data, min_screen, max_screen, min_data, max_data):
     """
@@ -59,6 +59,23 @@ def distance(pos1: tuple, pos2: tuple) -> float:
     return ans
 
 
+# def update_agents(agents = None):
+#     if agents != None:
+#         dic_agents.clear()
+#         obj_agent = json.loads(agents)
+#         for a in obj_agent['Agents']:
+#             id1 = int(a['Agent']['id'])
+#             val = float(a['Agent']['value'])
+#             src = int(a['Agent']['src'])
+#             speed = float(a['Agent']['speed'])
+#             dest = int(a['Agent']['dest'])
+#             x, y, _ = a['Agent']['pos'].split(',')
+#             x = my_scale(float(x), x=True)
+#             y = my_scale(float(y), y= True)
+#             pos = (x, y)
+#             new_agent = Agent(id1, val, src, dest, speed, pos)
+#             dic_agents[id1] = new_agent
+
 def pok_on_edge(pok: Pokemon):
     esp = 0.0000000001
     for src in graph.e_dictOfSrc.keys():
@@ -67,10 +84,14 @@ def pok_on_edge(pok: Pokemon):
             len1 = distance(graph.nodes.get(src).pos, pok.pos)
             len2 = distance(pok.pos, graph.nodes.get(dest).pos)
             if abs((len2 + len1) - len_edge) <= esp:
-                return graph.edges.get((src, dest))
+                if pok.type == 1:
+                    return graph.edges.get((src, dest))
+                if pok.type == -1:
+                    return graph.edges.get((dest, src))
 
 
 def next_edge(agent, dest):
+    dic_agents[agent.id].dest = dest
     client.choose_next_edge(
         '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(dest) + '}')
     ttl = client.time_to_end()
@@ -108,6 +129,38 @@ while client.is_running() == 'true':
             y = random.uniform(32.05, 32.22)
             pos = (x, y, 0.0)
             pokemons.append(Pokemon(val, typ, pos))
+    dic_agents.clear()
+    dict2 = json.loads(client.get_agents())
+    list_agents = dict2["Agents"]
+    for a in list_agents:
+        try:
+            one_agent = a["Agent"]
+            id1 = one_agent['id']
+            val = one_agent['value']
+            src = one_agent['src']
+            dest = one_agent['dest']
+            speed = one_agent['speed']
+            temp = one_agent['pos'].split(",")
+            x = float(temp[0])
+            y = float(temp[1])
+            z = float(temp[2])
+            x = my_scale(float(x), x=True)
+            y = my_scale(float(y), y=True)
+            pos = (x, y, z)
+            dic_agents[id1] = Agent(id1, val, src, dest, speed, pos)
+        except Exception:
+            one_agent = a["Agent"]
+            id1 = one_agent['id']
+            val = one_agent['value']
+            src = one_agent['src']
+            dest = one_agent['dest']
+            speed = one_agent['speed']
+            x = random.uniform(35.19, 35.22)
+            y = random.uniform(32.05, 32.22)
+            x = my_scale(float(x), x=True)
+            y = my_scale(float(y), y=True)
+            pos = (x, y, 0.0)
+            dic_agents[id1] = Agent(id1, val, src, dest, speed, pos)
     # pokemons = json.loads(client.get_pokemons(),
     #                       object_hook=lambda d: SimpleNamespace(**d)).Pokemons
     # pokemons = [p.Pokemon for p in pokemons]
@@ -115,13 +168,14 @@ while client.is_running() == 'true':
     #     x, y, _ = p.pos.split(',')
     #     p.pos = SimpleNamespace(x=my_scale(
     #         float(x), x=True), y=my_scale(float(y), y=True))
-    agents = json.loads(client.get_agents(),
-                        object_hook=lambda d: SimpleNamespace(**d)).Agents
-    agents = [agent.Agent for agent in agents]
-    for a in agents:
-        x, y, _ = a.pos.split(',')
-        a.pos = SimpleNamespace(x=my_scale(
-            float(x), x=True), y=my_scale(float(y), y=True))
+    # agents = json.loads(client.get_agents(),
+    #                     object_hook=lambda d: SimpleNamespace(**d)).Agents
+    # agents = [agent.Agent for agent in agents]
+    # for a in agents:
+    #     x, y, _ = a.pos.split(',')
+    #     a.pos = SimpleNamespace(x=my_scale(
+    #         float(x), x=True), y=my_scale(float(y), y=True))
+    # update_agents(client.get_agents())
     if button_stop.is_pressed:
         button_stop.func()
     # check events
@@ -153,9 +207,12 @@ while client.is_running() == 'true':
         rect = id_srf.get_rect(center=(x, y))
         screen.blit(id_srf, rect)
     # draw agents
-    for agent in agents:
+    for agent in dic_agents.values():
         pygame.draw.circle(screen, pygame.Color(122, 61, 23),
-                           (int(agent.pos.x), int(agent.pos.y)), 10)
+                           (int(agent.pos[0]), int(agent.pos[1])), 10)
+    # for agent in agents:
+    #     pygame.draw.circle(screen, pygame.Color(122, 61, 23),
+    #                        (int(agent.pos.x), int(agent.pos.y)), 10)
         # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
     for p in pokemons:
         p_x = my_scale(p.pos[0], x=True)
@@ -163,15 +220,43 @@ while client.is_running() == 'true':
         pygame.draw.circle(screen, pygame.Color(0, 255, 255), (int(p_x), int(p_y)), 10)
     for p in pokemons:
         p.edge = pok_on_edge(p)
-    for agent in agents:
+    for agent in dic_agents.values():
+    # for agent in agents:
         if agent.dest == -1:
-            len, path = algo.shortest_path(agent.src, pokemons[0].edge.src)
-            for ver in path:
-                next_edge(agent, ver)
-            client.choose_next_edge(
-                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(pokemons[0].edge.dest) + '}')
-            ttl = client.time_to_end()
-            print(ttl, client.get_info())
+            if len(pokemons) == 1:
+                lenght, path = algo.shortest_path(agent.src, pokemons[0].edge.src)
+                for ver in path:
+                    next_edge(agent, ver)
+                next_edge(agent, pokemons[0].edge.src)
+                client.choose_next_edge(
+                    '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(pokemons[0].edge.dest) + '}')
+                ttl = client.time_to_end()
+                print(ttl, client.get_info())
+                agent.dest = -1
+            elif len(dic_agents) == 1 and len(pokemons) > 1:
+                min_len = math.inf
+                min_path = []
+                min_pok = None
+                # cities = []
+                # cities.append(agent.src)
+                for p in pokemons:
+                    len2, path = algo.shortest_path(agent.src, p.edge.src)
+                    if len2 < min_len:
+                        min_len = len2
+                        min_path = path
+                        min_pok = p
+                    # cities.append(p.edge.dest)
+                # path, lenght = algo.TSP(cities)
+                # start = agent.src
+                for ver in min_path:
+                    # if ver != start:
+                    next_edge(agent, ver)
+                client.choose_next_edge(
+                    '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(min_pok.edge.dest) + '}')
+                ttl = client.time_to_end()
+                print(ttl, client.get_info())
+                agent.dest = -1
+
     button_stop_text = FONT.render(button_stop.text, True, (0, 0, 0))
     pygame.draw.rect(screen, button_stop.color, button_stop.rect)
     screen.blit(button_stop_text, (button_stop.rect.x + 10, button_stop.rect.y))
