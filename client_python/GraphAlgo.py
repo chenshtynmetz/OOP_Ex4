@@ -112,6 +112,8 @@ class GraphAlgo(GraphAlgoInterface):
         distance = self.graph.nodes.get(id2).weight
         return distance, ans
 
+   # def shortest_path2(self ,id1: int, id2:int):
+
     # diakstra algorithm
     def diakstra(self, id1: int, id2: int):
         if id1 == id2:

@@ -11,6 +11,7 @@ class Node:
         self.tag = 0
         self.info = ""
         self.weight = 0
+        self.father = None
 
     def __repr__(self):
         return f'"pos": {str(self.pos)}\n"id": {self.id}'

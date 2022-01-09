@@ -1,7 +1,9 @@
 import json
 import math
+import queue
 import random
 import sys
+import time
 
 import pygame
 
@@ -28,13 +30,16 @@ min_y = float(min(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
 max_x = float(max(list(graph.nodes.values()), key=lambda n: n.pos[0]).pos[0])
 max_y = float(max(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
 up_pok = pygame.image.load('../imag/up_pok.jpg')
+back = pygame.image.load('../imag/back.jpeg')
 pok_w = 40
 pok_h = 15
 up_pok = pygame.transform.scale(up_pok, (pok_w, pok_h))
 radius = 15
 dic_agents = {}
 pokemons = []
-button_stop = Button(pygame.Rect((700, 10), (70, 20)), "Stop", (255, 0, 0))
+t_count = time.time()
+m_count = 0
+button_stop = Button(pygame.Rect((700, 10), (90, 30)), "Stop", (255, 0, 0))
 button_stop.func = client.stop
 str_info = json.loads(client.get_info())
 sum_of_agents = str_info['GameServer']['agents']
@@ -156,6 +161,7 @@ def updeate_agents():
             else:
                 dic_agents[id1] = Agent(id1, val, src1, dest1, speed, pos)
 
+
 def update_graph(file):
     algo.load_from_json(file)
     graph = algo.get_graph()
@@ -167,6 +173,10 @@ def allocate_agent_to_pok(agent: Agent):
     min_pok = None
     for po in pokemons:
         if not po.collected:
+            if agent.src == po.edge.src:
+                min_path.append(agent.src)
+                min_pok = po
+                break
             len1, path1 = algo.shortest_path(agent.src, po.edge.src)
             if min_len > len1:
                 min_len = len1
@@ -177,6 +187,8 @@ def allocate_agent_to_pok(agent: Agent):
     min_pok.collected = True
     min_path.append(min_pok.edge.dest)
     agent.path = min_path
+    print(agent.path)
+
 
 def next_edge(agent, dest):
     client.choose_next_edge(
@@ -188,6 +200,7 @@ def next_edge(agent, dest):
 while client.is_running() == 'true':
     update_pokemons(client.get_pokemons())
     update_graph(client.get_graph())
+    str_info = json.loads(client.get_info())["GameServer"]
     updeate_agents()
     if button_stop.is_pressed:
         button_stop.func()
@@ -200,7 +213,8 @@ while client.is_running() == 'true':
         if event.type == pygame.MOUSEBUTTONDOWN:
             if button_stop.rect.collidepoint(event.pos):
                 button_stop.pressed()
-    screen.fill(pygame.Color(0, 0, 0))
+    # screen.fill(pygame.Color(0, 0, 0))
+    screen.blit(back, (0, 0))
     for e in graph.edges.values():
         # find the edge nodes
         src = next(n for n in graph.nodes.values() if n.id == e.src)
@@ -235,13 +249,13 @@ while client.is_running() == 'true':
         else:
             # r = up_pok.get_rect()
             # r_center = (int(p_x), int(p_y))
-            # screen.blit(up_pok, r)
+            # screen.blit(up_pok, (int(p_x), int(p_y)))
             # pygame.display.flip()
             pygame.draw.circle(screen, pygame.Color(250, 0, 2), (int(p_x), int(p_y)), 10)
-    # for p in pokemons:
-    #     p.edge = pok_on_edge(p)
+    sign = True
     for a in dic_agents.values():
         if a.dest == -1:
+            sign = False
             if len(a.path) == 0:
                 allocate_agent_to_pok(a)
             else:
@@ -250,8 +264,9 @@ while client.is_running() == 'true':
                     client.choose_next_edge(
                         '{"agent_id":' + str(a.id) + ', "next_node_id":' + str(next_node) + '}')
                     ttl = client.time_to_end()
-                    print(ttl, client.get_info())
-                    #pokemons.remove(a.pok)
+                    # print(ttl, client.get_info())
+                    # pokemons.remove(a.pok)
+
                 else:
                     client.choose_next_edge(
                         '{"agent_id":' + str(a.id) + ', "next_node_id":' + str(next_node) + '}')
@@ -281,7 +296,11 @@ while client.is_running() == 'true':
         #     elif len(a.path)>0:
         #         d = a.path.pop(0)
         #         next_edge(a, d)
-
+        # Moves counter window
+    pygame.draw.rect(screen, button_stop.color, pygame.Rect((590, 10), (90, 30)))
+    m_count = str_info['moves']
+    moves_text = FONT.render("Moves: " + str(m_count), True, pygame.Color(0, 0, 0))
+    screen.blit(moves_text, (590, 10))
     button_stop_text = FONT.render(button_stop.text, True, (0, 0, 0))
     pygame.draw.rect(screen, button_stop.color, button_stop.rect)
     screen.blit(button_stop_text, (button_stop.rect.x + 10, button_stop.rect.y))
@@ -291,4 +310,6 @@ while client.is_running() == 'true':
     screen.blit(time_text, rect)
     pygame.display.update()
     clock.tick(60)
-    client.move()
+    t_to_end = int(client.time_to_end()) / 1000
+    if int(str_info['moves']) / (time.time() - t_count) < 10 and sign:
+        client.move()
