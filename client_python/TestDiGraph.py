@@ -44,9 +44,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(5, size)
 
     def test_add_edge(self):
-        # self.g1.add_edge(5, 1, 1)
         size = 0
-        for i in self.g1.e_dictOfSrc:  # לבדוק את האיתחול בפונקציות
+        for i in self.g1.e_dictOfSrc:
             size = size + len(self.g1.e_dictOfSrc[i])
         self.assertEqual(6, size)
 
