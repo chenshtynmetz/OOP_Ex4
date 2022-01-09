@@ -6,13 +6,10 @@ from typing import List
 from queue import PriorityQueue
 import easygui
 import pygame
-import matplotlib.pyplot as plt
 
 from Button import Button
-from GUI import GUI
 from DiGraph import DiGraph, Node
 from GraphAlgoInterface import GraphAlgoInterface
-from GraphInterface import GraphInterface
 
 
 class GraphAlgo(GraphAlgoInterface):
