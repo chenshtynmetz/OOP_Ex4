@@ -61,11 +61,10 @@ def my_scale(data, x=False, y=False):
 
 
 def distance(pos1: tuple, pos2: tuple) -> float:
-    x = pos1[0] - pos2[0]
-    y = pos1[1] - pos2[1]
-    x = x * x
-    y = y * y
-    ans = math.sqrt(x + y)
+    x1 = math.pow(pos1[0] - pos2[0], 2)
+    y1 = pos1[1] - pos2[1]
+    y2 = y1 * y1
+    ans = math.sqrt(x1 + y2)
     return ans
 
 
@@ -83,29 +82,30 @@ def pok_on_edge(pok: Pokemon):
                     return graph.edges.get((dest, src))
 
 
-def update_pokemons():
+def update_pokemons(file):
+    dict1 = json.loads(file)
+    list_pokemons = dict1["Pokemons"]
     pokemons.clear()
-    dict = json.loads(client.get_pokemons())
-    list_pokemons = dict["Pokemons"]
-    for p in list_pokemons:
+    for pokem in list_pokemons:
         try:
-            one_pokemon = p["Pokemon"]
+            one_pokemon = pokem["Pokemon"]
             val = one_pokemon['value']
             typ = one_pokemon['type']
             temp = one_pokemon['pos'].split(",")
-            x = float(temp[0])
-            y = float(temp[1])
+            x1 = float(temp[0])
+            y1 = float(temp[1])
             z = float(temp[2])
-            pos = (x, y, z)
+            pos = (x1, y1, z)
             pokemons.append(Pokemon(val, typ, pos))
         except Exception:
             one_pokemon = p["Pokemon"]
             val = one_pokemon['value']
             typ = one_pokemon['type']
-            x = random.uniform(35.19, 35.22)
-            y = random.uniform(32.05, 32.22)
-            pos = (x, y, 0.0)
+            x1 = random.uniform(35.19, 35.22)
+            y1 = random.uniform(32.05, 32.22)
+            pos = (x1, y1, 0.0)
             pokemons.append(Pokemon(val, typ, pos))
+        # p.edge = pok_on_edge(p)
 
 
 def updeate_agents():
@@ -117,44 +117,49 @@ def updeate_agents():
             one_agent = a["Agent"]
             id1 = one_agent['id']
             val = one_agent['value']
-            src = one_agent['src']
-            dest = one_agent['dest']
+            src1 = one_agent['src']
+            dest1 = one_agent['dest']
             speed = one_agent['speed']
             temp = one_agent['pos'].split(",")
-            x = float(temp[0])
-            y = float(temp[1])
+            x1 = float(temp[0])
+            y1 = float(temp[1])
             z = float(temp[2])
-            x = my_scale(float(x), x=True)
-            y = my_scale(float(y), y=True)
-            pos = (x, y, z)
+            x1 = my_scale(float(x1), x=True)
+            y1 = my_scale(float(y1), y=True)
+            pos = (x1, y1, z)
             if id1 in dic_agents:
                 dic_agents[id1].value = val
-                dic_agents[id1].src = src
-                dic_agents[id1].dest = dest
+                dic_agents[id1].src = src1
+                dic_agents[id1].dest = dest1
                 dic_agents[id1].speed = speed
                 dic_agents[id1].pos = pos
             else:
-                dic_agents[id1] = Agent(id1, val, src, dest, speed, pos)
+                dic_agents[id1] = Agent(id1, val, src1, dest1, speed, pos)
         except Exception:
             one_agent = a["Agent"]
             id1 = one_agent['id']
             val = one_agent['value']
-            src = one_agent['src']
-            dest = one_agent['dest']
+            src1 = one_agent['src']
+            dest1 = one_agent['dest']
             speed = one_agent['speed']
-            x = random.uniform(35.19, 35.22)
-            y = random.uniform(32.05, 32.22)
-            x = my_scale(float(x), x=True)
-            y = my_scale(float(y), y=True)
-            pos = (x, y, 0.0)
+            x1 = random.uniform(35.19, 35.22)
+            y1 = random.uniform(32.05, 32.22)
+            x1 = my_scale(float(x1), x=True)
+            y1 = my_scale(float(y1), y=True)
+            pos = (x1, y1, 0.0)
             if dic_agents.get(id1) == True:
                 dic_agents[id1].value = val
-                dic_agents[id1].src = src
-                dic_agents[id1].dest = dest
+                dic_agents[id1].src = src1
+                dic_agents[id1].dest = dest1
                 dic_agents[id1].speed = speed
                 dic_agents[id1].pos = pos
             else:
-                dic_agents[id1] = Agent(id1, val, src, dest, speed, pos)
+                dic_agents[id1] = Agent(id1, val, src1, dest1, speed, pos)
+
+def update_graph(file):
+    algo.load_from_json(file)
+    graph = algo.get_graph()
+
 
 def allocate_agent_to_pok(agent: Agent):
     min_len = math.inf
@@ -181,7 +186,8 @@ def next_edge(agent, dest):
 
 
 while client.is_running() == 'true':
-    update_pokemons()
+    update_pokemons(client.get_pokemons())
+    update_graph(client.get_graph())
     updeate_agents()
     if button_stop.is_pressed:
         button_stop.func()
@@ -219,7 +225,9 @@ while client.is_running() == 'true':
         pygame.draw.circle(screen, pygame.Color(122, 61, 23),
                            (int(agent.pos[0]), int(agent.pos[1])), 10)
         # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
+    # update_pokemons(client.get_pokemons())
     for p in pokemons:
+        p.edge = pok_on_edge(p)
         p_x = my_scale(p.pos[0], x=True)
         p_y = my_scale(p.pos[1], y=True)
         if p.type == -1:
@@ -230,18 +238,25 @@ while client.is_running() == 'true':
             # screen.blit(up_pok, r)
             # pygame.display.flip()
             pygame.draw.circle(screen, pygame.Color(250, 0, 2), (int(p_x), int(p_y)), 10)
-    for p in pokemons:
-        p.edge = pok_on_edge(p)
+    # for p in pokemons:
+    #     p.edge = pok_on_edge(p)
     for a in dic_agents.values():
         if a.dest == -1:
             if len(a.path) == 0:
                 allocate_agent_to_pok(a)
             else:
                 next_node = a.path.pop(0)
-                client.choose_next_edge(
-                    '{"agent_id":' + str(a.id) + ', "next_node_id":' + str(next_node) + '}')
-            #     ttl = client.time_to_end()
-            #     print(ttl, client.get_info())
+                if a.src == a.pok.edge.src:
+                    client.choose_next_edge(
+                        '{"agent_id":' + str(a.id) + ', "next_node_id":' + str(next_node) + '}')
+                    ttl = client.time_to_end()
+                    print(ttl, client.get_info())
+                    #pokemons.remove(a.pok)
+                else:
+                    client.choose_next_edge(
+                        '{"agent_id":' + str(a.id) + ', "next_node_id":' + str(next_node) + '}')
+                    ttl = client.time_to_end()
+                    print(ttl, client.get_info())
             # next_node = b
             # b = b-1
             # client.choose_next_edge(
