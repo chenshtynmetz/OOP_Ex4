@@ -23,7 +23,7 @@ client.start_connection(HOST, PORT)
 algo = GraphAlgo()
 algo.load_from_json(client.get_graph())
 graph = algo.get_graph()
-FONT = pygame.font.SysFont('Arial', 20, bold=True)
+FONT = pygame.font.SysFont('comicsansms', 18, bold=True)
 min_x = float(min(list(graph.nodes.values()), key=lambda n: n.pos[0]).pos[0])
 min_y = float(min(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
 max_x = float(max(list(graph.nodes.values()), key=lambda n: n.pos[0]).pos[0])
@@ -38,7 +38,7 @@ dic_agents = {}
 pokemons = []
 t_count = time.time()
 m_count = 0
-button_stop = Button(pygame.Rect((700, 10), (90, 30)), "Stop", (255, 0, 0))
+button_stop = Button(pygame.Rect((695, 10), (100, 30)), "Stop", (251, 201, 14))
 button_stop.func = client.stop
 str_info = json.loads(client.get_info())
 sum_of_agents = str_info['GameServer']['agents']
@@ -220,18 +220,18 @@ while client.is_running() == 'true':
         dest_x = my_scale(dest.pos[0], x=True)
         dest_y = my_scale(dest.pos[1], y=True)
         # draw the line
-        pygame.draw.line(screen, pygame.Color(61, 72, 126),
+        pygame.draw.line(screen, pygame.Color(69, 69, 69),
                          (src_x, src_y), (dest_x, dest_y), width=2)
     for n in graph.nodes.values():
         x = my_scale(n.pos[0], x=True)
         y = my_scale(n.pos[1], y=True)
-        pygame.draw.circle(screen, pygame.Color(255, 128, 0), (x, y), radius)
+        pygame.draw.circle(screen, pygame.Color(128, 0, 64), (x, y), radius)
         id_srf = FONT.render(str(n.id), True, pygame.Color(255, 255, 255))
         rect = id_srf.get_rect(center=(x, y))
         screen.blit(id_srf, rect)
     # draw agents
     for agent in dic_agents.values():
-        pygame.draw.circle(screen, pygame.Color(122, 61, 23),
+        pygame.draw.circle(screen, pygame.Color(251, 201, 14),
                            (int(agent.pos[0]), int(agent.pos[1])), 10)
     # draw pokemon
     for p in pokemons:
@@ -239,9 +239,9 @@ while client.is_running() == 'true':
         p_x = my_scale(p.pos[0], x=True)
         p_y = my_scale(p.pos[1], y=True)
         if p.type == -1:
-            pygame.draw.circle(screen, pygame.Color(0, 255, 255), (int(p_x), int(p_y)), 10)
+            pygame.draw.circle(screen, pygame.Color(0, 196, 196), (int(p_x), int(p_y)), 10)
         else:
-            pygame.draw.circle(screen, pygame.Color(250, 0, 2), (int(p_x), int(p_y)), 10)
+            pygame.draw.circle(screen, pygame.Color(255, 0, 128), (int(p_x), int(p_y)), 10)
     sign = True
     for a in dic_agents.values():
         if a.dest == -1:
@@ -261,17 +261,16 @@ while client.is_running() == 'true':
                     ttl = client.time_to_end()
                     print(ttl, client.get_info())
     # Moves counter window
-    pygame.draw.rect(screen, button_stop.color, pygame.Rect((590, 10), (90, 30)))
+    pygame.draw.rect(screen, button_stop.color, pygame.Rect((589, 10), (102, 30)))
     m_count = str_info['moves']
-    moves_text = FONT.render("Moves: " + str(m_count), True, pygame.Color(0, 0, 0))
+    moves_text = FONT.render("Moves:" + str(m_count), True, pygame.Color(0, 0, 0))
     screen.blit(moves_text, (590, 10))
     button_stop_text = FONT.render(button_stop.text, True, (0, 0, 0))
     pygame.draw.rect(screen, button_stop.color, button_stop.rect)
     screen.blit(button_stop_text, (button_stop.rect.x + 10, button_stop.rect.y))
-    pygame.draw.rect(screen, (0, 0, 0), [20, 15, 100, 70])
-    time_text = FONT.render("Time: " + str(int(pygame.time.get_ticks() / 1000)), True, pygame.Color(255, 255, 255))
-    rect = time_text.get_rect(center=(70, 50))
-    screen.blit(time_text, rect)
+    pygame.draw.rect(screen, button_stop.color, pygame.Rect((485, 10), (100, 30)))
+    time_text = FONT.render("Time: " + str(int(pygame.time.get_ticks() / 1000)), True, pygame.Color(0, 0, 0))
+    screen.blit(time_text, (490, 10))
     pygame.display.update()
     clock.tick(60)
     t_to_end = int(client.time_to_end()) / 1000
