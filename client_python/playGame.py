@@ -5,7 +5,7 @@ import sys
 import time
 
 import pygame
-from pygame import RESIZABLE
+from pygame import RESIZABLE, HWSURFACE, DOUBLEBUF
 
 from client_python.Button import Button
 from client_python.GraphAlgo import GraphAlgo
@@ -17,7 +17,9 @@ WIDTH, HEIGHT = 1080, 720
 PORT = 6666
 HOST = '127.0.0.1'
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT), depth=32, flags=RESIZABLE)
+screen = pygame.display.set_mode((WIDTH, HEIGHT), depth=32,  flags= RESIZABLE)
+# screen = pygame.display.set_mode((WIDTH, HEIGHT), RESIZABLE | )
+# background = pygame.Surface((WIDTH, HEIGHT), depth=32, flags= pygame.RESIZABLE)
 clock = pygame.time.Clock()
 pygame.font.init()
 client = Client()

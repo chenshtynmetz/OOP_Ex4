@@ -1,6 +1,6 @@
 import random
 
-from GraphInterface import GraphInterface
+#from GraphInterface import GraphInterface
 
 
 # class of node on the graph
@@ -30,7 +30,7 @@ class Edge:
         return f'"src": {self.src}\n"w": {self.weight}\n"dest": {self.dest}'
 
 
-class DiGraph(GraphInterface):
+class DiGraph():#GraphInterface):
     # init graph
     def __init__(self):
         self.nodes = {}
