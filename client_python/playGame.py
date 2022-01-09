@@ -138,5 +138,5 @@ while client.is_running() == 'true':
     pygame.display.update()
     clock.tick(60)
     t_to_end = int(client.time_to_end()) / 1000
-    if int(str_info['moves']) / (time.time() - t_count) < 10 and sign:
+    if int(str_info['moves']) / (time.time() - t_count) < 9.8 and sign:
         client.move()
