@@ -1,9 +1,8 @@
 import json
 import math
 import random
-import time
-from types import SimpleNamespace
-import networkx as nx
+import sys
+
 import pygame
 
 from client_python.Button import Button
@@ -21,8 +20,6 @@ pygame.font.init()
 client = Client()
 client.start_connection(HOST, PORT)
 algo = GraphAlgo()
-# dict_info = json.loads(client.get_info())
-# path = dict_info["GameServer"]["graph"]
 algo.load_from_json(client.get_graph())
 graph = algo.get_graph()
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
@@ -30,8 +27,22 @@ min_x = float(min(list(graph.nodes.values()), key=lambda n: n.pos[0]).pos[0])
 min_y = float(min(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
 max_x = float(max(list(graph.nodes.values()), key=lambda n: n.pos[0]).pos[0])
 max_y = float(max(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
+up_pok = pygame.image.load('../imag/up_pok.jpg')
+pok_w = 40
+pok_h = 15
+up_pok = pygame.transform.scale(up_pok, (pok_w, pok_h))
 radius = 15
 dic_agents = {}
+pokemons = []
+button_stop = Button(pygame.Rect((700, 10), (70, 20)), "Stop", (255, 0, 0))
+button_stop.func = client.stop
+str_info = json.loads(client.get_info())
+sum_of_agents = str_info['GameServer']['agents']
+for ag in range(sum_of_agents):
+    name = "{\"id\":+" + str(ag) + "}"
+    client.add_agent(name)
+client.start()
+
 
 def scale(data, min_screen, max_screen, min_data, max_data):
     """
@@ -42,7 +53,6 @@ def scale(data, min_screen, max_screen, min_data, max_data):
 
 
 # decorate scale with the correct values
-
 def my_scale(data, x=False, y=False):
     if x:
         return scale(data, 50, screen.get_width() - 50, min_x, max_x)
@@ -59,23 +69,6 @@ def distance(pos1: tuple, pos2: tuple) -> float:
     return ans
 
 
-# def update_agents(agents = None):
-#     if agents != None:
-#         dic_agents.clear()
-#         obj_agent = json.loads(agents)
-#         for a in obj_agent['Agents']:
-#             id1 = int(a['Agent']['id'])
-#             val = float(a['Agent']['value'])
-#             src = int(a['Agent']['src'])
-#             speed = float(a['Agent']['speed'])
-#             dest = int(a['Agent']['dest'])
-#             x, y, _ = a['Agent']['pos'].split(',')
-#             x = my_scale(float(x), x=True)
-#             y = my_scale(float(y), y= True)
-#             pos = (x, y)
-#             new_agent = Agent(id1, val, src, dest, speed, pos)
-#             dic_agents[id1] = new_agent
-
 def pok_on_edge(pok: Pokemon):
     esp = 0.0000000001
     for src in graph.e_dictOfSrc.keys():
@@ -90,23 +83,7 @@ def pok_on_edge(pok: Pokemon):
                     return graph.edges.get((dest, src))
 
 
-def next_edge(agent, dest):
-    dic_agents[agent.id].dest = dest
-    client.choose_next_edge(
-        '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(dest) + '}')
-    ttl = client.time_to_end()
-    print(ttl, client.get_info())
-
-str_info = json.loads(client.get_info())
-sum_of_agents = str_info['GameServer']['agents']
-for ag in range(sum_of_agents):
-    name = "{\"id\":+"+str(ag)+"}"
-    client.add_agent(name)
-client.start()
-pokemons = []
-button_stop = Button(pygame.Rect((700, 10), (70, 20)), "Stop", (255, 0, 0))
-button_stop.func = client.stop
-while client.is_running() == 'true':
+def update_pokemons():
     pokemons.clear()
     dict = json.loads(client.get_pokemons())
     list_pokemons = dict["Pokemons"]
@@ -129,7 +106,10 @@ while client.is_running() == 'true':
             y = random.uniform(32.05, 32.22)
             pos = (x, y, 0.0)
             pokemons.append(Pokemon(val, typ, pos))
-    dic_agents.clear()
+
+
+def updeate_agents():
+    # dic_agents.clear()
     dict2 = json.loads(client.get_agents())
     list_agents = dict2["Agents"]
     for a in list_agents:
@@ -147,7 +127,14 @@ while client.is_running() == 'true':
             x = my_scale(float(x), x=True)
             y = my_scale(float(y), y=True)
             pos = (x, y, z)
-            dic_agents[id1] = Agent(id1, val, src, dest, speed, pos)
+            if id1 in dic_agents:
+                dic_agents[id1].value = val
+                dic_agents[id1].src = src
+                dic_agents[id1].dest = dest
+                dic_agents[id1].speed = speed
+                dic_agents[id1].pos = pos
+            else:
+                dic_agents[id1] = Agent(id1, val, src, dest, speed, pos)
         except Exception:
             one_agent = a["Agent"]
             id1 = one_agent['id']
@@ -160,24 +147,45 @@ while client.is_running() == 'true':
             x = my_scale(float(x), x=True)
             y = my_scale(float(y), y=True)
             pos = (x, y, 0.0)
-            dic_agents[id1] = Agent(id1, val, src, dest, speed, pos)
-    # pokemons = json.loads(client.get_pokemons(),
-    #                       object_hook=lambda d: SimpleNamespace(**d)).Pokemons
-    # pokemons = [p.Pokemon for p in pokemons]
-    # for p in pokemons:
-    #     x, y, _ = p.pos.split(',')
-    #     p.pos = SimpleNamespace(x=my_scale(
-    #         float(x), x=True), y=my_scale(float(y), y=True))
-    # agents = json.loads(client.get_agents(),
-    #                     object_hook=lambda d: SimpleNamespace(**d)).Agents
-    # agents = [agent.Agent for agent in agents]
-    # for a in agents:
-    #     x, y, _ = a.pos.split(',')
-    #     a.pos = SimpleNamespace(x=my_scale(
-    #         float(x), x=True), y=my_scale(float(y), y=True))
-    # update_agents(client.get_agents())
+            if dic_agents.get(id1) == True:
+                dic_agents[id1].value = val
+                dic_agents[id1].src = src
+                dic_agents[id1].dest = dest
+                dic_agents[id1].speed = speed
+                dic_agents[id1].pos = pos
+            else:
+                dic_agents[id1] = Agent(id1, val, src, dest, speed, pos)
+
+def allocate_agent_to_pok(agent: Agent):
+    min_len = math.inf
+    min_path = []
+    min_pok = None
+    for po in pokemons:
+        if not po.collected:
+            len1, path1 = algo.shortest_path(agent.src, po.edge.src)
+            if min_len > len1:
+                min_len = len1
+                min_path = path1
+                min_pok = po
+    st = min_path.pop(0)
+    agent.pok = min_pok
+    min_pok.collected = True
+    min_path.append(min_pok.edge.dest)
+    agent.path = min_path
+
+def next_edge(agent, dest):
+    client.choose_next_edge(
+        '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(dest) + '}')
+    ttl = client.time_to_end()
+    print(ttl, client.get_info())
+
+
+while client.is_running() == 'true':
+    update_pokemons()
+    updeate_agents()
     if button_stop.is_pressed:
         button_stop.func()
+        sys.exit()
     # check events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -206,62 +214,58 @@ while client.is_running() == 'true':
         id_srf = FONT.render(str(n.id), True, pygame.Color(255, 255, 255))
         rect = id_srf.get_rect(center=(x, y))
         screen.blit(id_srf, rect)
-    # draw agents
+        # draw agents
     for agent in dic_agents.values():
         pygame.draw.circle(screen, pygame.Color(122, 61, 23),
                            (int(agent.pos[0]), int(agent.pos[1])), 10)
-    # for agent in agents:
-    #     pygame.draw.circle(screen, pygame.Color(122, 61, 23),
-    #                        (int(agent.pos.x), int(agent.pos.y)), 10)
-    # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
+        # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
     for p in pokemons:
         p_x = my_scale(p.pos[0], x=True)
         p_y = my_scale(p.pos[1], y=True)
-        pygame.draw.circle(screen, pygame.Color(0, 255, 255), (int(p_x), int(p_y)), 10)
+        if p.type == -1:
+            pygame.draw.circle(screen, pygame.Color(0, 255, 255), (int(p_x), int(p_y)), 10)
+        else:
+            # r = up_pok.get_rect()
+            # r_center = (int(p_x), int(p_y))
+            # screen.blit(up_pok, r)
+            # pygame.display.flip()
+            pygame.draw.circle(screen, pygame.Color(250, 0, 2), (int(p_x), int(p_y)), 10)
     for p in pokemons:
         p.edge = pok_on_edge(p)
-    for agent in dic_agents.values():
-    # for agent in agents:
-        if agent.dest == -1:
-            if len(pokemons) == 1:
-                lenght, path = algo.shortest_path(agent.src, pokemons[0].edge.src)
-                for ver in path:
-                    next_edge(agent, ver)
-                next_edge(agent, pokemons[0].edge.src)
+    for a in dic_agents.values():
+        if a.dest == -1:
+            if len(a.path) == 0:
+                allocate_agent_to_pok(a)
+            else:
+                next_node = a.path.pop(0)
                 client.choose_next_edge(
-                    '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(pokemons[0].edge.dest) + '}')
-                ttl = client.time_to_end()
-                print(ttl, client.get_info())
-                agent.dest = -1
-            elif len(dic_agents) == 1 and len(pokemons) > 1:
-                min_len = math.inf
-                min_path = []
-                min_pok = None
-                # cities = []
-                # cities.append(agent.src)
-                for p in pokemons:
-                    len2, path = algo.shortest_path(agent.src, p.edge.src)
-                    if len2 < min_len:
-                        min_len = len2
-                        min_path = path
-                        min_pok = p
-                    # cities.append(p.edge.dest)
-                # path, lenght = algo.TSP(cities)
-                # start = agent.src
-                min_pok.assign = True
-                for ver in min_path:
-                    # if ver != start:
-                    next_edge(agent, ver)
-                    pygame.display.update()
-                if min_pok.assign:
-                    next_edge(agent, min_pok.edge.dest)
-                    # pygame.display.update()
-                # agent.dest = min_pok.edge.dest
-                # client.choose_next_edge(
-                #     '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(min_pok.edge.dest) + '}')
-                # ttl = client.time_to_end()
-                # print(ttl, client.get_info())
-                dic_agents[agent.id].dest = -1
+                    '{"agent_id":' + str(a.id) + ', "next_node_id":' + str(next_node) + '}')
+            #     ttl = client.time_to_end()
+            #     print(ttl, client.get_info())
+            # next_node = b
+            # b = b-1
+            # client.choose_next_edge(
+            #     '{"agent_id":' + str(a.id) + ', "next_node_id":' + str(next_node) + '}')
+            # ttl = client.time_to_end()
+            # print(ttl, client.get_info())
+        # if a.pok == None:
+        #     allocate_agent_to_pok(a)
+        #     for v in a.path:
+        #         # if len(a.path) > 0:
+        #             # d = a.path[v]
+        #         next_edge(a, v)
+        #         a.src = v
+        #     if a.src == a.pok.edge.src:
+        #         pygame.display.update()
+        #         pygame.display.flip()
+        #         next_edge(a, a.pok.edge.dest)
+        #         a.path.clear()
+        # else:
+        #     if a.src == a.pok.edge.src:
+        #         next_edge(a, a.pok.edge.dest)
+        #     elif len(a.path)>0:
+        #         d = a.path.pop(0)
+        #         next_edge(a, d)
 
     button_stop_text = FONT.render(button_stop.text, True, (0, 0, 0))
     pygame.draw.rect(screen, button_stop.color, button_stop.rect)
@@ -273,5 +277,3 @@ while client.is_running() == 'true':
     pygame.display.update()
     clock.tick(60)
     client.move()
-
-# todo check why the program stop in line 74-75

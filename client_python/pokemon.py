@@ -6,6 +6,7 @@ class Pokemon:
         self.pos = pos
         self.edge = None  # cheak from pos the right edge
         self.assign = False  # if we draw the pokimon on the graph
+        self.collected = False
 
 
 class Agent:
@@ -16,3 +17,6 @@ class Agent:
         self.dest = dest
         self.speed = speed
         self.pos = pos
+        self.path = []
+        self.pok = None
+
