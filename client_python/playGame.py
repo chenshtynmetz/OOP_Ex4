@@ -5,6 +5,7 @@ import sys
 import time
 
 import pygame
+from pygame import RESIZABLE
 
 from client_python.Button import Button
 from client_python.GraphAlgo import GraphAlgo
@@ -16,7 +17,7 @@ WIDTH, HEIGHT = 1080, 720
 PORT = 6666
 HOST = '127.0.0.1'
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT), depth=32, flags= pygame.RESIZABLE)
+screen = pygame.display.set_mode((WIDTH, HEIGHT), depth=32, flags=RESIZABLE)
 clock = pygame.time.Clock()
 pygame.font.init()
 client = Client()
@@ -30,6 +31,7 @@ min_y = float(min(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
 max_x = float(max(list(graph.nodes.values()), key=lambda n: n.pos[0]).pos[0])
 max_y = float(max(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
 back = pygame.image.load('../imag/back.jpeg')
+
 radius = 15
 dic_agents = {}
 pokemons = []
@@ -45,6 +47,8 @@ for ag in range(sum_of_agents):
 client.start()
 
 while client.is_running() == 'true':
+    back = pygame.transform.scale(back, (screen.get_width(), screen.get_width()))
+    screen.blit(back, (0, 0))
     func = Functions(min_x, min_y, max_x, max_y, screen, graph, pokemons, client, dic_agents, algo)
     # update the pokemons list
     func.update_pokemons(client.get_pokemons())
@@ -65,7 +69,6 @@ while client.is_running() == 'true':
         if event.type == pygame.MOUSEBUTTONDOWN:
             if button_stop.rect.collidepoint(event.pos):
                 button_stop.pressed()
-    screen.blit(back, (0, 0))
     for e in graph.edges.values():
         # find the edge nodes
         src = next(n for n in graph.nodes.values() if n.id == e.src)
