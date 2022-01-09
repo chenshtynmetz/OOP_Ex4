@@ -29,11 +29,7 @@ min_x = float(min(list(graph.nodes.values()), key=lambda n: n.pos[0]).pos[0])
 min_y = float(min(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
 max_x = float(max(list(graph.nodes.values()), key=lambda n: n.pos[0]).pos[0])
 max_y = float(max(list(graph.nodes.values()), key=lambda n: n.pos[1]).pos[1])
-up_pok = pygame.image.load('../imag/up_pok.jpg')
 back = pygame.image.load('../imag/back.jpeg')
-pok_w = 40
-pok_h = 15
-up_pok = pygame.transform.scale(up_pok, (pok_w, pok_h))
 radius = 15
 dic_agents = {}
 pokemons = []
