@@ -1,4 +1,7 @@
 # OOP_Ex4
+
+![image](https://user-images.githubusercontent.com/80433297/148684563-372b5c1a-bfb0-42bb-948b-3a4444afd5ab.png)
+
 In this task we asked to implements pokemon game.
 In order to implements the graph of the game, we take classes from the previous task: DiGraph and GraphAlgo.
 In addition, we implements 2 new classes: Pokemon and Agent.
