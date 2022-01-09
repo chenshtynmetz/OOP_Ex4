@@ -10,7 +10,7 @@ from client_python import DiGraph
 
 class Functions:
 
-    def __init__(self, min_x, min_y, max_x, max_y, screen, graph: DiGraph, pokemons: [], client: Client, dic_agents: {},
+    def __init__(self, min_x, min_y, max_x, max_y, screen, graph: DiGraph, pokemons: [], dic_agents: {},
                  algo: GraphAlgo):
         self.min_x = min_x
         self.min_y = min_y
@@ -19,7 +19,7 @@ class Functions:
         self.screen = screen
         self.graph = graph
         self.pokemons = pokemons
-        self.client = client
+        #self.client = client
         self.dic_agents = dic_agents
         self.algo = algo
 
@@ -86,8 +86,8 @@ class Functions:
                 self.pokemons.append(Pokemon(val, typ, pos))
 
     # this function update the dictionary of the agents.
-    def updeate_agents(self):
-        dict2 = json.loads(self.client.get_agents())
+    def updeate_agents(self, file: str):
+        dict2 = json.loads(file)
         list_agents = dict2["Agents"]
         for a in list_agents:
             try:
@@ -165,4 +165,4 @@ class Functions:
             min_pok.collected = True
             min_path.append(min_pok.edge.dest)
             agent.path = min_path
-            print(agent.path)
+            # print(agent.path)

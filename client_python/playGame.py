@@ -51,14 +51,14 @@ client.start()
 while client.is_running() == 'true':
     back = pygame.transform.scale(back, (screen.get_width(), screen.get_width()))
     screen.blit(back, (0, 0))
-    func = Functions(min_x, min_y, max_x, max_y, screen, graph, pokemons, client, dic_agents, algo)
+    func = Functions(min_x, min_y, max_x, max_y, screen, graph, pokemons, dic_agents, algo)
     # update the pokemons list
     func.update_pokemons(client.get_pokemons())
     # update the graph
     func.update_graph(client.get_graph())
     str_info = json.loads(client.get_info())["GameServer"]
     # update the agents dictionary
-    func.updeate_agents()
+    func.updeate_agents(client.get_agents())
     # if the stop button is pressed, stop the connection to the server gracefully.
     if button_stop.is_pressed:
         button_stop.func()
