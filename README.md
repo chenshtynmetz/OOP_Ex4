@@ -12,6 +12,7 @@ https://github.com/chenshtynmetz/OOP_Ex4/wiki/Details-on-the-main-classes
 ![back](https://user-images.githubusercontent.com/80433297/148686337-8b22f937-73b1-4b84-b388-d1b616167a12.jpeg)
 Wiki link about details of graphic arts \
 https://github.com/chenshtynmetz/OOP_Ex4/wiki/our-GUI
+
 ## How to run:
 * plese copy this order to the terminal of the project <java -jar Ex4_Server_v0.0.jar 0> \
   (where the “0” parameter is a case between [0-15]).
